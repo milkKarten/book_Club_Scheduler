@@ -12,3 +12,5 @@ This program interprets an excel file with the follow format:
 2nd column: Last Name
 3rd column: Write 'Yes' or 'No' depending on if one is a group leader
 4th through Nth column: Write 'Available' or not for each timeslot
+
+To use, download python, openpyxl, jdcal. Place excel spreadsheet in same folder with program and run.
