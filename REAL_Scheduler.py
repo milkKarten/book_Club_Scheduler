@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-'''Created by Seth Karten, 2017'''
+'''Created by Seth Karten, 2018'''
 '''
 Creates REAL groups based on timeslots and REAL leader info
 IMPORTANT: Include only firstName, lastName, REAL leader,
@@ -168,26 +168,27 @@ class schedule:
 	'''Switch leaders to new timeslot if a member does not fit in a group'''
 	def switchLeaders(self):
 		orderedModes = [[self.modes[0][0]], [self.modes[0][1]]]
-		while len(self.unassignedMembers) > 0 and self.membersNotAssigned:
+		for i in range(1, len(self.modes)):
+			orderedModes[0].append(self.modes[i][0]) # Mode
+			orderedModes[1].append(self.modes[i][1]) # timeslot column
+		while len(self.unassignedMembers) > 0:
 			newMembersToAssign = []
 			justAssignedMembers = []
-			for i in range(1, len(self.modes)):
-				orderedModes[0].append(self.modes[i][0]) # Mode
-				orderedModes[1].append(self.modes[i][1]) # timeslot column
 			if self.membersNotAssigned:
 				for k in range(0, len(self.unassignedMembers[0])):
 					movedMember = False
 					allMembersCanMove = False
-					for mode in range(0, len(orderedModes[0])):
+					for mode in range(0, len(orderedModes[1])):
 						inList = False
 						for j in range(0, len(self.groupList)):
-							if orderedModes[0][mode] == self.groupList[j][3]:
+							if orderedModes[1][mode] == self.groupList[j][2]:
 								inList = True
 								break
 						if inList:
 							continue
 						member = self.unassignedMembers[1][k]
 						isAvailable = self.sheet.cell(row = member, column = orderedModes[1][mode])
+						#print(str(isAvailable.value) + ' member: ' + str(member) + ' column: ' + str(orderedModes[1][mode]))
 						if isAvailable.value == 'Available':
 							for group in range(0, len(self.groupList)):
 								allMembersCanMove = True
@@ -221,7 +222,7 @@ class schedule:
 										else:
 											canMove = False
 											cannotMove.append(group)
-									if len(cannotMove) == len(self.groupList):
+									if len(cannotMove) == len(self.groupList) - self.numLeaders:
 										print('Cannot switch group: ' + str(self.sheet.cell(row = member, column = 1).value) + ' ' + str(self.sheet.cell(row = member, column = 2).value) + ' must pick from an available timeslot manually')
 										break
 								if canMove:
@@ -240,6 +241,8 @@ class schedule:
 									substringIndex = self.groupList[group][0][0].index('-') + 1
 									subString = self.groupList[group][0][0][:substringIndex]
 									self.groupList[group][0][0] = subString + ' ' + str(self.sheet.cell(row = 3, column = self.groupList[group][2]).value)
+						else:
+							continue
 						if movedMember or allMembersCanMove:
 							if len(justAssignedMembers) == 0:
 								justAssignedMembers = [[self.unassignedMembers[0][k]], [self.unassignedMembers[1][k]]]
@@ -251,23 +254,23 @@ class schedule:
 				newFinishedMembers = []
 				tempUnassignedMembers = self.unassignedMembers
 				self.unassignedMembers = []
-				'''
+
 				for member in range(0, len(tempUnassignedMembers[0])):
 					try:
 						if tempUnassignedMembers[0][member] not in justAssignedMembers[0]:
-							if len(self.unassignedMembers) == 0:
-								self.unassignedMembers = [[tempUnassignedMembers[0][member]], [tempUnassignedMembers[1][member]]]
+							if len(newMembersToAssign) == 0:
+								newMembersToAssign = [[tempUnassignedMembers[0][member]], [tempUnassignedMembers[1][member]]]
 							else:
-								self.unassignedMembers[0].append(tempUnassignedMembers[0][member])
-								self.unassignedMembers[1].append(tempUnassignedMembers[1][member])
+								newMembersToAssign[0].append(tempUnassignedMembers[0][member])
+								newMembersToAssign[1].append(tempUnassignedMembers[1][member])
 					except:
 						pass
-						if len(self.unassignedMembers) == 0:
-							self.unassignedMembers = [[tempUnassignedMembers[0][member]], [tempUnassignedMembers[1][member]]]
+						if len(newMembersToAssign) == 0:
+							newMembersToAssign = [[tempUnassignedMembers[0][member]], [tempUnassignedMembers[1][member]]]
 						else:
-							self.unassignedMembers[0].append(tempUnassignedMembers[0][member])
-							self.unassignedMembers[1].append(tempUnassignedMembers[1][member])
-				'''
+							newMembersToAssign[0].append(tempUnassignedMembers[0][member])
+							newMembersToAssign[1].append(tempUnassignedMembers[1][member])
+
 				if len(newMembersToAssign) > 0:
 					for member in range(0, len(newMembersToAssign[1])):
 						name = newMembersToAssign[0][member]
