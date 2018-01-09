@@ -170,12 +170,14 @@ class schedule:
 		orderedModes = [[self.modes[0][0]], [self.modes[0][1]]]
 		while len(self.unassignedMembers) > 0 and self.membersNotAssigned:
 			newMembersToAssign = []
+			justAssignedMembers = []
 			for i in range(1, len(self.modes)):
 				orderedModes[0].append(self.modes[i][0]) # Mode
 				orderedModes[1].append(self.modes[i][1]) # timeslot column
 			if self.membersNotAssigned:
 				for k in range(0, len(self.unassignedMembers[0])):
 					movedMember = False
+					allMembersCanMove = False
 					for mode in range(0, len(orderedModes[0])):
 						inList = False
 						for j in range(0, len(self.groupList)):
@@ -203,6 +205,9 @@ class schedule:
 									self.groupList[group][1].append(self.unassignedMembers[1][k])
 									self.unassignedMembers.remove(self.unassignedMembers[0][k])
 									self.unassignedMembers.remove(self.unassignedMembers[1][k])
+									substringIndex = self.groupList[group][0][0].index('-') + 1
+									subString = self.groupList[group][0][0][:substringIndex]
+									self.groupList[group][0][0] = subString + ' ' + str(self.sheet.cell(row = 3, column = self.groupList[group][2]).value)
 							if not allMembersCanMove:
 								cannotMove = []
 								canMove = False
@@ -235,33 +240,57 @@ class schedule:
 									substringIndex = self.groupList[group][0][0].index('-') + 1
 									subString = self.groupList[group][0][0][:substringIndex]
 									self.groupList[group][0][0] = subString + ' ' + str(self.sheet.cell(row = 3, column = self.groupList[group][2]).value)
-						if movedMember:
+						if movedMember or allMembersCanMove:
+							if len(justAssignedMembers) == 0:
+								justAssignedMembers = [[self.unassignedMembers[0][k]], [self.unassignedMembers[1][k]]]
+							else:
+								justAssignedMembers[0].append(self.unassignedMembers[0][k])
+								justAssignedMembers[1].append(self.unassignedMembers[1][k])
 							break
 				#Assign newMembersToAssign to groups
 				newFinishedMembers = []
+				tempUnassignedMembers = self.unassignedMembers
 				self.unassignedMembers = []
-				for member in range(0, len(newMembersToAssign[1])):
-					name = newMembersToAssign[0][member]
-					if name in newFinishedMembers:
-						continue
-					for currentLeader in range(0, len(self.groupList)):
-						rowNum = newMembersToAssign[1][member]
-						columnNum = self.groupList[currentLeader][2]
-						isAvailable = self.sheet.cell(row = rowNum, column = columnNum)
-						if isAvailable.value == 'Available':
-							self.groupList[currentLeader][0].append(name)
-							self.groupList[currentLeader][1].append(newMembersToAssign[1][member])
-							newFinishedMembers.append(name)
-							break
-					if name not in newFinishedMembers:
-						self.membersNotAssigned = True
+				'''
+				for member in range(0, len(tempUnassignedMembers[0])):
+					try:
+						if tempUnassignedMembers[0][member] not in justAssignedMembers[0]:
+							if len(self.unassignedMembers) == 0:
+								self.unassignedMembers = [[tempUnassignedMembers[0][member]], [tempUnassignedMembers[1][member]]]
+							else:
+								self.unassignedMembers[0].append(tempUnassignedMembers[0][member])
+								self.unassignedMembers[1].append(tempUnassignedMembers[1][member])
+					except:
+						pass
 						if len(self.unassignedMembers) == 0:
-							self.unassignedMembers = [[name], [newMembersToAssign[1][member]]]
+							self.unassignedMembers = [[tempUnassignedMembers[0][member]], [tempUnassignedMembers[1][member]]]
 						else:
-							self.unassignedMembers[0].append(name)
-							self.unassignedMembers[1].append(newMembersToAssign[1][member])
-						print(str(name) + ' did not join group')
-						#print(self.unassignedMembers)
+							self.unassignedMembers[0].append(tempUnassignedMembers[0][member])
+							self.unassignedMembers[1].append(tempUnassignedMembers[1][member])
+				'''
+				if len(newMembersToAssign) > 0:
+					for member in range(0, len(newMembersToAssign[1])):
+						name = newMembersToAssign[0][member]
+						if name in newFinishedMembers:
+							continue
+						for currentLeader in range(0, len(self.groupList)):
+							rowNum = newMembersToAssign[1][member]
+							columnNum = self.groupList[currentLeader][2]
+							isAvailable = self.sheet.cell(row = rowNum, column = columnNum)
+							if isAvailable.value == 'Available':
+								self.groupList[currentLeader][0].append(name)
+								self.groupList[currentLeader][1].append(newMembersToAssign[1][member])
+								newFinishedMembers.append(name)
+								break
+						if name not in newFinishedMembers:
+							self.membersNotAssigned = True
+							if len(self.unassignedMembers) == 0:
+								self.unassignedMembers = [[name], [newMembersToAssign[1][member]]]
+							else:
+								self.unassignedMembers[0].append(name)
+								self.unassignedMembers[1].append(newMembersToAssign[1][member])
+							print(str(name) + ' did not join group')
+							#print(self.unassignedMembers)
 
 	'''Assign each group average number of group members'''
 	def averageNumGroupMembers(self):
