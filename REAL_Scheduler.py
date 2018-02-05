@@ -212,8 +212,9 @@ class schedule:
 							if not allMembersCanMove:
 								cannotMove = []
 								canMove = False
-								while True:
-									group = random.randint(0, len(self.groupList) - 1)
+								for group in range(0, len(self.groupList) - 1):
+								#while True:
+									#group = random.randint(0, len(self.groupList) - 1)
 									if group not in cannotMove:
 										isAvailable = self.sheet.cell(row = self.groupList[group][1][0], column = orderedModes[1][mode])
 										if isAvailable.value == 'Available':
@@ -399,7 +400,7 @@ class schedule:
 		self.sheet = self.wb.get_sheet_by_name('Sheet1')
 
 		self.numEntries = self.sheet.max_row
-		self.maxColumns = 45
+		self.maxColumns = 40
 		self.firstNameColumn = 'A'
 		self.lastNameColumn = 'B'
 		self.isLeaderColumn = 'C'
